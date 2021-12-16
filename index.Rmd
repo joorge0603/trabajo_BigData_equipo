@@ -1,5 +1,5 @@
 ---
-title: "Los piratería desde 1993 hasta nuestros días"
+title: "La piratería desde 1993 hasta nuestros días"
 author: "Teodoro D'Agostino(tedagar@alumni.uv.es)  \n\n Jorge González(jorgonan@alumni.uv.es)  \n \n Aurora Lloret(aullohe@alumni.uv.es). \n\n Universitat de València"
 date: "Diciembre de 2021 (actualizado el `r format(Sys.time(), '%d-%m-%Y')`)"
 output:
