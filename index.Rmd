@@ -82,7 +82,7 @@ library(grid)
 
 # 1. Introducción
 
-En este trabajo trataremos de extraer algunas conclusiones y ayudar al lector a comprender algunos datos sobre la piratería marítima en el mundo actual. Nuestro dataset se basa en el que se puede econtrar [aquí](https://www.kaggle.com/n0n5ense/global-maritime-pirate-attacks-19932020). La referencia completa es esta [@dataset].
+En este trabajo trataremos de extraer algunas conclusiones y ayudar al lector a comprender algunos datos sobre la piratería marítima en el mundo actual. Nuestro dataset se basa en el que se puede encontrar [aquí](https://www.kaggle.com/n0n5ense/global-maritime-pirate-attacks-19932020). La referencia completa es esta [@dataset].
 
 <br>
 
@@ -98,7 +98,7 @@ No existe una única definición clara de qué constituye un ataque pirata, lo c
 
 > *The action of committing robbery, kidnap, or violence at sea or from the sea without lawful authority, especially by one vessel against another; an instance of this.*
 
-La pitratería en el mundo actual es una lacra para el desarrollo, con un coste económico estimado entre los 7 y 12 mil millones de dólares americanos al año, o incluso más [@Bowden_2010]. Sin embargo, es probable que las peores consecuancias sean las humanitarias, que se dejan sentir especialmente en aquellos paíse subsdesarrollados en cuyas aguas se emplazan la mayoría de ataques. Es importante considerar que la mayoría de actos de piratería suceden en un contexto mayor de violencia y desorden que casi siempre va de la mano de altos niveles de corrupción y llega a incluir guerras civiles, y que como mínimo condiciona la vida de la población local a causa de las distorsiones que genera en los sectores pesquero y de explotación minera y petrolífera, a menudo principales fuentes de riqueza de las comunidades costeras de estos países [@Nincic_2009][@Fu_2010].
+La piratería en el mundo actual es una lacra para el desarrollo, con un coste económico estimado entre los 7 y 12 mil millones de dólares americanos al año, o incluso más [@Bowden_2010]. Sin embargo, es probable que las peores consecuancias sean las humanitarias, que se dejan sentir especialmente en aquellos paíse subsdesarrollados en cuyas aguas se emplazan la mayoría de ataques. Es importante considerar que la mayoría de actos de piratería suceden en un contexto mayor de violencia y desorden que casi siempre va de la mano de altos niveles de corrupción y llega a incluir guerras civiles, y que como mínimo condiciona la vida de la población local a causa de las distorsiones que genera en los sectores pesquero y de explotación minera y petrolífera, a menudo principales fuentes de riqueza de las comunidades costeras de estos países [@Nincic_2009][@Fu_2010].
 
 Nuestro análisis va a permitir identificar algunas de las tendencias que han definido la evolución de la piratería en estos últimos años, especialmente en lo referente a prevalencia de los tipos de ataques y movimiento de las "zonas calientes" de la piratería internacional. También vamos a contextualizar esta información con datos de carácter económico, social y político.
 
@@ -555,7 +555,21 @@ fig3d
 
 ```{r}
 
-at_estado <- pirate_attacks %>% select(year, vessel_status) %>% group_by(year) %>%  count(vessel_status) %>%  filter(!is.na(vessel_status)) %>% slice_max(order_by = n, n=7) %>% group_by(vessel_status) %>% summarise(h=sum(n)) %>% slice_max(order_by = h, n=11) %>%  mutate(vessel_status = forcats::as_factor(vessel_status)) %>% mutate(vessel_status = forcats::fct_reorder(vessel_status, h, .desc = FALSE))
+at_estado <- pirate_attacks %>% select(year, vessel_status) %>% group_by(year) %>%  count(vessel_status) %>%  filter(!is.na(vessel_status)) %>% slice_max(order_by = n, n=7) %>% group_by(vessel_status) %>% summarise(h=sum(n)) %>% slice_max(order_by = h, n=11) %>%
+  mutate(vessel_status = case_when(
+    vessel_status == "Anchored" ~ "Anclado",
+    vessel_status == "Steaming" ~ "Navegando",
+    vessel_status == "Berthed" ~ "Atracado",
+    vessel_status == "Underway" ~ "En marcha",
+    vessel_status == "Stationary" ~ "Estacionado",
+    vessel_status == "Drifting" ~ "A la deriva",
+    vessel_status == "Moored" ~ "Amarrado",
+    vessel_status == "Bunkering operations" ~ "Repostando",
+    vessel_status == "Fishing" ~ "Pescando",
+    vessel_status == "Grounded" ~ "En tierra",
+    vessel_status == "Towed" ~ "Remolcado",
+  )) %>% 
+  mutate(vessel_status = forcats::as_factor(vessel_status)) %>% mutate(vessel_status = forcats::fct_reorder(vessel_status, h, .desc = FALSE))
 
 
 ggplot(data=at_estado, aes(vessel_status, h)) + geom_col(fill="Thistle") + 
@@ -564,15 +578,13 @@ ggplot(data=at_estado, aes(vessel_status, h)) + geom_col(fill="Thistle") +
   labs(title = "Estado de las embarcaciones",
     x = "Estado de la embarcación",
     y = "Número de embarcaciones") + 
-  scale_x_discrete(labels=c("Anclado","Navegando", "Secuestro","Atracado","En marcha", "Estacionado", "A la deriva", "Amarrado", "Remolcado", "En tierra", "Pescando", "Repostando")) +
   theme(plot.title = element_text(size = 20, face = "bold", hjust = 0),         plot.subtitle = element_text(size = 20, hjust = 0.5),
         axis.title.x = element_text(size = 13, hjust = 1, vjust = 0),
         axis.title.y = element_text(size = 13, hjust = 1, vjust = 1)) 
 
-
 ```
 
-La mayoría de las embarcaciones cuando fueron atracadas se encontraban ancladas, steaming o atracadas. La diferencia entre.... Los piratas suelen huir cuando suenan las alarmas de los barcos sin dar tiempo a ser atrapados, por lo que muchos de los incidentes resultan no denunciarse. Las autoridades ponen a disposición Imb Piracy Reporting Centre donde pueden reportar todos los incidentes que se produzcan.
+La mayoría de las embarcaciones cuando fueron atracadas se encontraban ancladas, navegando o atracadas. Los piratas suelen huir cuando suenan las alarmas de los barcos sin dar tiempo a ser atrapados, por lo que muchos de los incidentes resultan no denunciarse. Las autoridades ponen a disposición Imb Piracy Reporting Centre donde pueden reportar todos los incidentes que se produzcan.
 
 ## 3.5 Tipo de embarcaciones
 
@@ -640,7 +652,9 @@ s <- ggplotly(p1)
 htmltools::div(s, align = "center" )
 ```
 
-Como hemos comentado antes el Maersk Alamaba, fue secuestrado allá por el 2009, cuatro piratas somalís tomaron posesión del barco. Fue un acontecimineto importante ya que era el primer asalto que se realizaba con éxito en el Siglo XIX a un buque portador de la bandera estadounidense. En este secuestro los piratas tuvieron vigilada a la tripulación a punta de pistola. Finalmente la armada de EE.UU abatió a tres de los secuestradores.
+Como hemos comentado antes, el Maersk Alamaba fue secuestrado allá por el 2009, cuatro piratas somalís tomaron posesión del barco. Fue un acontecimineto importante ya que era el primer asalto que se realizaba con éxito desde el Siglo XIX a un buque portador de la bandera estadounidense. En este secuestro los piratas tuvieron vigilada a la tripulación a punta de pistola. Finalmente la armada de EE.UU abatió a tres de los secuestradores.
+
+Otro ejemplo curioso es el del Thor Falcon, que sufrió 6 ataques en el 2003 seis días seguidos. Este barco fue abordado cerca de Bangladesh las 6 veces mientras se encontraba atracado.
 
 # 4. Dataset de los Países
 
